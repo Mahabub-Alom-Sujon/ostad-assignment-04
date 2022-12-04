@@ -11,14 +11,29 @@ var storage = multer.diskStorage({
     filename: function (req, file, callback) {
         callback(null, file.originalname);
     }
+    
 });
-var upload = multer({storage: storage}).array('files', 3);
+const imageFilter = function(req, file, cb) {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)) {
+        req.fileValidationError = 'Only image files are allowed!';
+        return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+};
+
+var upload = multer({storage: storage, fileFilter: imageFilter}).array('files', 3);
 app.post('/upload', function (req, res, next) {
     upload(req, res, function (err) {
-        if (err) {
-            return res.end("Something went wrong");
+        if (req.fileValidationError) {
+            return res.send(req.fileValidationError);
         }
-        res.end("Upload completed.");
+        else{
+
+            let result = "You have uploaded these images File";
+            res.send(result);
+        }
+        
     });
 });
 app.listen(port, () => {
